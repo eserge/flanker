@@ -211,7 +211,7 @@ def lookup_domain(domain):
 
     mx_hosts = _get_dns_lookup()[fqdn]
 
-    if len(mx_hosts) == 0:
+    if len(list(mx_hosts)) == 0:
         return None
     return mx_hosts
 

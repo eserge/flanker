@@ -1,5 +1,6 @@
 # coding:utf-8
 
+import sys
 import re
 
 from .. import *
@@ -9,6 +10,9 @@ from nose.tools import nottest
 from mock import patch
 
 from flanker.addresslib import address, validate
+
+
+PY3 = sys.version_info[0] == 3
 
 
 COMMENT = re.compile(r'''\s*#''')
@@ -73,6 +77,10 @@ def mock_exchanger_lookup(arg, metrics=False):
 
 @nottest
 def fake_dns_lookup(domain_name, lookup_results):
+    if PY3:
+        # This is how `dnsq` actually returns mx_records. Emulating it in tests
+        lookup_results = filter(lambda x: True, lookup_results)
+
     fqdn = '%s.' % domain_name
     return {
         fqdn: lookup_results,
