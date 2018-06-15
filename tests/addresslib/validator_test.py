@@ -186,35 +186,76 @@ def test_parse_syntax_only_false():
         assert_equal(unpar, all_invalid_list)
 
 
+@nottest
+def fake_dns_lookup(domain_name, lookup_results):
+    fqdn = '%s.' % domain_name
+    return {
+        fqdn: lookup_results,
+    }
+
+
 @patch('flanker.addresslib.validate.connect_to_mail_exchanger')
-@patch('flanker.addresslib.validate.lookup_domain')
-def test_mx_lookup(ld, cmx):
-    # has MX, has MX server
-    ld.return_value = ['mx1.fake.mailgun.com', 'mx2.fake.mailgun.com']
+@patch('flanker.addresslib.validate._get_dns_lookup')
+def test_mx_lookup(dns, cmx):
+    domain_name = 'mailgun.com'
+    mx_records = ['mx1.fake.mailgun.com', 'mx2.fake.mailgun.com']
+    email_address = 'username@%s' % domain_name
+    expected_address = email_address
+
+    dns.return_value = fake_dns_lookup(domain_name, mx_records)
     cmx.return_value = 'mx1.fake.mailgun.com'
 
-    addr = address.validate_address('username@mailgun.com')
-    assert_not_equal(addr, None)
+    validated_address = address.validate_address(email_address)
+    assert_not_equal(validated_address, None)
+    assert_equal(validated_address, expected_address)
 
+
+@patch('flanker.addresslib.validate.connect_to_mail_exchanger')
+@patch('flanker.addresslib.validate._get_dns_lookup')
+def test_mx_lookup_has_mx_has_fallback(dns, cmx):
     # has fallback A, has MX server
-    ld.return_value = ['domain.com']
+    domain_name = 'domain.com'
+    mx_records = ['domain.com']
+    email_address = 'username@%s' % domain_name
+    expected_address = email_address
+
+    dns.return_value = fake_dns_lookup(domain_name, mx_records)
     cmx.return_value = 'domain.com'
 
-    addr = address.validate_address('username@domain.com')
+    addr = address.validate_address(email_address)
     assert_not_equal(addr, None)
+    assert_equal(addr, expected_address)
 
+
+@patch('flanker.addresslib.validate.connect_to_mail_exchanger')
+@patch('flanker.addresslib.validate._get_dns_lookup')
+def test_mx_lookup_has_mx_no_server_answer(dns, cmx):
     # has MX, no server answers
-    ld.return_value = ['mx.example.com']
+    domain_name = 'example.com'
+    mx_records = ['mx.example.com']
+    email_address = 'username@%s' % domain_name
+    expected_address = email_address
+
+    dns.return_value = fake_dns_lookup(domain_name, mx_records)
     cmx.return_value = None
+
+    # ld.return_value = ['mx.example.com']
+    # cmx.return_value = None
 
     addr = address.validate_address('username@example.com')
     assert_equal(addr, None)
 
+
+@patch('flanker.addresslib.validate.connect_to_mail_exchanger')
+@patch('flanker.addresslib.validate._get_dns_lookup')
+def test_mx_lookup_has_no_mx(dns, cmx):
     # no MX
-    ld.return_value = []
+    domain_name = 'example.com'
+    email_address = 'username@%s' % domain_name
+    dns.return_value = fake_dns_lookup(domain_name, [])
     cmx.return_value = None
 
-    addr = address.validate_address('username@no-dns-records-for-domain.com')
+    addr = address.validate_address(email_address)
     assert_equal(addr, None)
 
 

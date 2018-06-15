@@ -204,7 +204,11 @@ def lookup_domain(domain):
     implimentation of the dnspython lookup in the flanker.addresslib.driver
     package for more details.
     """
-    fqdn = domain if domain[-1] == '.' else ''.join([domain, '.'])
+    if domain[-1] == '.':
+        fqdn = domain
+    else:
+        fqdn = ''.join([domain, '.'])
+
     mx_hosts = _get_dns_lookup()[fqdn]
 
     if len(mx_hosts) == 0:
