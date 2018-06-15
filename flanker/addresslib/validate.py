@@ -210,6 +210,7 @@ def lookup_domain(domain):
         fqdn = ''.join([domain, '.'])
 
     mx_hosts = _get_dns_lookup()[fqdn]
+    mx_hosts = list(mx_hosts)
 
     if len(mx_hosts) == 0:
         return None
