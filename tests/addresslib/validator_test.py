@@ -71,6 +71,14 @@ def mock_exchanger_lookup(arg, metrics=False):
             return None
 
 
+@nottest
+def fake_dns_lookup(domain_name, lookup_results):
+    fqdn = '%s.' % domain_name
+    return {
+        fqdn: lookup_results,
+    }
+
+
 def test_abridged_mailbox_valid_set():
     for line in ABRIDGED_LOCALPART_VALID_TESTS.split('\n'):
         # strip line, skip over empty lines
@@ -184,14 +192,6 @@ def test_parse_syntax_only_false():
         parse, unpar = address.validate_list(all_list, as_tuple=True)
         assert_equal(parse, all_valid_list)
         assert_equal(unpar, all_invalid_list)
-
-
-@nottest
-def fake_dns_lookup(domain_name, lookup_results):
-    fqdn = '%s.' % domain_name
-    return {
-        fqdn: lookup_results,
-    }
 
 
 @patch('flanker.addresslib.validate.connect_to_mail_exchanger')
