@@ -24,7 +24,8 @@ class RedisCache(collections.MutableMapping):
         db = os.environ.get('REDIS_DB', 0)
         password = password or os.environ.get('REDIS_PASSWORD', 0)
         self.r = redis.StrictRedis(
-            host=host, port=port, db=db, password=password
+            host=host, port=port, db=db, password=password,
+            decode_responses=True
         )
 
     def __getitem__(self, key):
