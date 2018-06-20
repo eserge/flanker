@@ -8,14 +8,24 @@ class RedisCache(collections.MutableMapping):
     RedisCache has the same interface as a dict, but talks to a redis server.
     """
 
-    def __init__(self, host=None, port=None, prefix='mxr:', ttl=604800):
+    def __init__(
+        self,
+        host=None,
+        port=None,
+        prefix='mxr:',
+        ttl=604800,
+        password=None
+    ):
         self.prefix = prefix
         self.ttl = ttl
 
         host = host or os.environ.get('REDIS_HOST', 'localhost')
         port = port or os.environ.get('REDIS_PORT', 6379)
         db = os.environ.get('REDIS_DB', 0)
-        self.r = redis.StrictRedis(host=host, port=port, db=db)
+        password = password or os.environ.get('REDIS_PASSWORD', 0)
+        self.r = redis.StrictRedis(
+            host=host, port=port, db=db, password=password
+        )
 
     def __getitem__(self, key):
         try:
