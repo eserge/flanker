@@ -306,6 +306,10 @@ def validate_address(addr_spec, metrics=False, skip_remote_checks=False):
         return None, mtimes
 
     if skip_remote_checks:
+        _log.debug(
+            'Skipping remote checks as per `skip_remote_checks` = %s',
+            skip_remote_checks
+        )
         return paddr, mtimes
 
     # lookup if this domain has a mail exchanger
