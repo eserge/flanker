@@ -14,10 +14,15 @@ class RedisCache(collections.MutableMapping):
         port=None,
         prefix='mxr:',
         ttl=604800,
-        password=None
+        password=None,
+        redis_connection=None,
     ):
         self.prefix = prefix
         self.ttl = ttl
+
+        if redis_connection:
+            self.r = redis_connection
+            return
 
         host = host or os.environ.get('REDIS_HOST', 'localhost')
         port = port or os.environ.get('REDIS_PORT', 6379)
