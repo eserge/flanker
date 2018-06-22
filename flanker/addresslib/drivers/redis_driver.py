@@ -1,6 +1,10 @@
 import collections
 import os
+from logging import getLogger
+
 import redis
+
+log = getLogger(__name__)
 
 
 class RedisCache(collections.MutableMapping):
@@ -36,28 +40,35 @@ class RedisCache(collections.MutableMapping):
     def __getitem__(self, key):
         try:
             return self.r.get(self.__keytransform__(key))
-        except:
+        except redis.RedisError:
+            log.exception('Redis is unavailable')
             return None
 
     def __setitem__(self, key, value):
         try:
             return self.r.setex(self.__keytransform__(key), self.ttl, value)
-        except:
+        except redis.RedisError:
+            log.exception('Redis is unavailable')
             return None
 
     def __delitem__(self, key):
-        self.r.delete(self.__keytransform__(key))
+        try:
+            self.r.delete(self.__keytransform__(key))
+        except redis.RedisError:
+            log.exception('Redis is unavailable')
 
     def __iter__(self):
         try:
             return self.__value_generator__(self.r.keys(self.prefix + '*'))
-        except:
+        except redis.RedisError:
+            log.exception('Redis is unavailable')
             return iter([])
 
     def __len__(self):
         try:
             return len(self.r.keys(self.__keytransform__('*')))
-        except:
+        except redis.RedisError:
+            log.exception('Redis is unavailable')
             return 0
 
     def __keytransform__(self, key):
